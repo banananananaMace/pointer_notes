@@ -1,0 +1,274 @@
+
+一, C语言基础
+1, 数据类型
+	char		1字节
+	short		2字节
+	int		4字节
+	long		4/8字节
+	long long	8字节
+	float		4字节
+	double		8字节
+
+	%p		打印地址;
+	%x		打印十六进制
+	%o		打印八进制;
+	%s		打印字符串
+	%f		打印单精度浮点型(float)
+	%l		打印双精度浮点型(double)
+
+2, 全局变量与局部变量
+	1), 全局变量可与局部变量同名, 局部变量优先;
+	2), 局部变量的作用域是在相应的代码块中(大括号中);
+
+3, const关键字
+	const int num = 8;// num是变量,但是具有常属性,成为常变量;
+	num = 4;// error: const修饰的常变量无法被修改;
+
+4, #define 定义的标识符常量;
+	#define MAX(a, b) a > b ? a : b
+
+5, 枚举变量
+	enum sex {
+		male,
+		female,
+		secret,
+	};
+
+6, 转义字符
+	char a[] = {'a', 'b'};
+	printf("%s", a);// 由于数组中没有'\0',因此打印会出现乱码;
+	strlen(a);// 随机值,找不到结束符;
+
+	strlen("c:\test\32\test.c") is 13, \t \32 \t 各占一个字节
+	\ddd 表示1-3个八进制数字
+	\xdd 表示1-2个十六进制数组
+
+7, 选择语句
+	switch (param) {
+		case condition1:
+			break;
+		case ...:
+			...;
+		default:
+			break;
+	}
+
+8, 数组
+	1), 数组在内存中是连续的地址,可通过数组首元素的地址获取到数组中的任意元素;
+	2), 数组传参, 传过去的不是整个数组,而是第一个元素的地址;
+
+9, 函数
+	1), 函数的实参与形参分别占用不同内存块,对形参的修改不会影响实参;
+	2), 传址调用是将函数外部创建变量的内存地址传递给函数参数的一种调用方式;
+
+	3), is_prime
+	bool is_prime(int num)
+	{
+		for (int i = 0; i < sqrt(num); i++) {
+			if (num % i == 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+
+	4), binary_search()
+	int binary_search(int *arr, int size, int num)
+	{
+		int left = 0;
+		int right = size - 1;
+		while (left <= right) {
+			int mid = left + (right - left) / 2; // mid的作用域仅在while循环中;
+			if (arr[mid] > num) {
+				right = mid - 1;
+			} else if (arr[mid] < num) {
+				left = mid + 1;
+			} else {
+				return mid;
+			}
+		}
+		return -1;
+	}
+
+10, 递归:程序调用自身的技巧;必要条件:存在限制条件,满足条件时递归结束;每次递归都需要接近该条件;
+	1), 无限递归容易导致栈溢出;!!!
+	int main
+	{
+		main(); // stack overflow
+		return 0;
+	}
+
+	/*
+	 * C语言内存分布
+	 * ------------------------------
+	 * |局部变量, 函数形参		| 栈区
+	 * ------------------------------
+	 * |malloc, calloc, realloc	| 堆区
+	 * ------------------------------
+	 * |全局变量, static变量	| 静态存储区(代码段， 数据段)
+	 * ------------------------------
+	*/
+
+	2), 接收一个整形, 按照顺序输出某一位
+	void func(int num)
+	{
+		if (num > 9) {
+			func(num / 10);
+		}
+		printf("%d ", num % 10);
+	}
+
+11, 结构体
+	1), 结构体成员可以是各种类型的变量；
+	typedef struct student {
+		char name[NAME_LEN];
+		int age;
+		int sex;
+	} STUDENT;
+	struct student person; or  STUDENT person;
+
+	2), 结构体初始化：
+	struct student person = {
+		.name = "zhangsan",
+		.age = 10,
+		.sex = 100,
+	};
+
+	struct student person = {"zhangsan", 10, 100};
+	struct student *person = {"zhangsan", 10, 100};
+	person->age;
+	person->name;
+
+12, 联合(共用体)
+	共用体的成员公用同一块空间;
+	union un {
+		char c;
+		int i;
+	};
+	union un temp;
+	---------------------
+	|char|    |    |    |
+	---------------------
+	---------------------
+	|int |    |    |    |
+	---------------------
+	// 地址空间完全相同; char与int为同一起始地址;
+	printf("%p", &temp);
+	printf("%p", &(temp.c));
+	printf("%p", &(temp.i));
+	sizeof(temp) == 4;// 联合体的大小至少是最大成员的大小;
+
+12, 函数栈帧的创建与销毁
+	https://blog.csdn.net/qq_61635026/article/details/124384367
+
+二，C语言进阶
+1, 数据存储
+	1), 整型在内存中都是以补码的形式存的;
+
+2, 结构体的内存对齐
+	1), 第一个成员在与结构体变量偏移量为0的地址处；
+	2), 其他成员变量要对齐到某个数字的整数倍的地址处；
+	3), 结构体的总大小为最大对齐数的整数倍；
+	4), 如果嵌套定义了结构体，嵌套的结构体对齐到自己的最大对齐数的整数倍处，结构体的总大小是最大对齐数的整数倍；
+
+3、C语言的内存分配:
+	1), malloc, free(free用来释放动态开辟的空间的)
+	int *p = (int *)malloc(10 * sizeof(int));
+	free(p);
+	p = NULL;// free后将p置为null
+	2), calloc: 开辟空间后并将元素置为0
+	(int *)calloc(10, sizeof(int))
+	3), realloc: 调整动态开辟内存空间的大小
+	当malloc的空间不够时,使用realloc调整
+	int *p = (int *)malloc(10 * sizeof(int))
+	int *p1 = realloc(p, 10 * sizeof(int))
+	if (p1 != NULL) {
+		p = p1;
+	}
+	/*
+	 * 1, 如果p指向的空间之后有足够的内存空间,则直接追加后返回p
+	 * 2, 如果p指向的空间之后没有足够的内存空间,则realloc
+	 *    会找一块新的空间开辟并将原来内存中的数据拷贝过来并释放原来的空间,
+	 *    返回新开辟的内存空间地址;
+	 */
+
+	4), 不能随意返回栈空间的地址(局部变量的地址);
+	5), 柔性数组(C99特性):
+	方法一 柔性数组
+	struct s {
+		int i;
+		int arr[0];//未知大小的数组,数组的大小是可以调整的. 且为结构体的最后一个成员;
+	};
+	sizeof(struct s) == 4// 柔性数组成员不占空间大小;
+	------------------------------------------------
+	| sizeof(int) |            arr[]               |
+	------------------------------------------------
+	int *p = (struct s *)malloc(sizeof(int) +  sizeof(int) * 5)// 为arr申请一个5个int大小的空间
+
+	方法二 指针
+	struct s {
+		int num;
+		int *arr;
+	};
+	struct s *ps = (struct s *)malloc(sizeof(struct s));
+	ps->arr = (int *)malloc(sizeof(int) * 5);
+
+	/*
+	 * 以上两种方式的区别: 柔性数组的内存是连续的,而指针方式不是;
+	 * 方法二需要调用两次free; free(ps); free(p->arr); 柔性数组方便内存释放;
+	 * 方法二malloc的空间不一定会是连续的,会造成内存碎片; 柔性数组会减少碎片,提升访问速度;
+	 */
+
+4、文件管理
+	FILE *fp = fopen("test.txt", "wb");// fp为文件指针
+	fclose(fp);
+
+5, # 与 ##
+	1), #可以使参数转变为字符串;
+	#define STR(param) printf("the string is "#param "\n")
+	#define TO_STR(param) printf("the string is %s\n", #param)
+	int main()
+	{
+		STR("hello world");
+	}
+
+	2), ##可以连接两个参数
+	#define CAT(a, b) a##b
+	int main()
+	{
+		int ab = 10;
+		printf("%d\n", CAT(a, b));
+	}
+
+6, 条件编译
+	#define DEBUG
+	int main()
+	{
+	#ifdef DEBUG // #if defined(DEBUG)
+		printf("hello world\n");
+	#else // #elif
+		printf("goodbye world\n");
+	#endif
+		return 0;
+	}
+
+7, 判断大小端
+	// 方法一: 将1在内存中的第一个字节读取出来，1表示小端，0表示大端;
+	static int check_sys()
+	{
+		int temp = 1;
+		return *(char *)(&temp);
+	}
+
+	// 方法二：使用共用体
+	static int check_sys()
+	{
+		union nu {
+			char c;
+			int i;
+		};
+		union un temp;
+		un.i = 1;
+		return nu.c;
+	}
